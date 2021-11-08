@@ -9,7 +9,7 @@ public class HanoiSystem {
 		towers = new int [3];
 		
 		
-		towers[0] = 2;
+		towers[0] = 3;
 		
 		printMovements();
 		move(towers[0], 0, 1, 2);
@@ -38,8 +38,11 @@ public class HanoiSystem {
 		else //if( disks > 1)
 		{
 			move(disks-1, towerA, towerC, towerB);
+			
 			move(disks-1, towerA, towerB, towerC);
-			move(disks-1, towerB, towerA, towerC);		
+			
+			move(disks-1, towerB, towerC, towerA);
+
 		}
 	}
 	
