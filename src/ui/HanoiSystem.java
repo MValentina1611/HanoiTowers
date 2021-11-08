@@ -5,10 +5,13 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class HanoiSystem {
 
-	private static int [] towers; 
+	private static ArrayList<Integer> towerA;
+	private static ArrayList<Integer> towerB;
+	private static ArrayList<Integer> towerC;
 	
 	private static BufferedReader br;	
 	private static BufferedWriter bw;
@@ -17,17 +20,14 @@ public class HanoiSystem {
 
 	public static void main(String[] args) throws IOException 
 	{	
-		towers = new int [3];
-		//towers[0] = 3;
 		
 		br = new BufferedReader(new FileReader(TEST_FILE) );
 		bw = new BufferedWriter(new FileWriter(TEST_OUTPUT_FILE));
 		
-		
+		towerA = new ArrayList<Integer>();
+		towerB = new ArrayList<Integer>();
+		towerC = new ArrayList<Integer>();
 		importData();
-		
-		//printMovements();
-		//move(towers[0], 0, 1, 2);
 		
 	}
 	
@@ -37,35 +37,44 @@ public class HanoiSystem {
 	 *  	 -> Mover disks-1 a B ([1])  
 	 *		 -> Mover el disk restante a C ([2]) 
 	 *		 -> Mover disk-1 (que sería como otra torre de tamaño disks-1) a C ([2]) encima del disk restante.
+	 *
+	 * CAMBIAMOS LA FORMA DE EJECUTAR LA ESTRATEGIA: 
+	 * 	NECESITAMOS MANEJAR LA CANTIDAD QUE SE SUMA Y QUE SE QUITA EN CADA TORRE 
+	 * 	CON LOS APUNTADORES "towerA,..." SÓLO SEÑALAMOS A UNA POSICIÓN DEL ARREGLO.
+	 * 	EN REALIDAD NO HAY NIGUN CAMBIO PARA UNA CASILLA DISTINTA A "0" Y "2" 
+	 * 	ENTONCES SEGUIREMOS TENIENDO TORRES A B Y C PERO SERÁN ESTRUCTURAS SEPARADAS 
+	 * 	TAMBIÉN NECESITAMOS AÑADIR EL CASO DE QUE SEA 0 PARA QUE NO ENTRE AL ELSE Y DEN NÚMEROS NEGATIVOS
 	 */
 	
-	public static void move( int disks, int towerA, int towerB, int towerC ) throws IOException
+	//Cambiamos el nombre para que tenga logica
+	public static void playHanoi( int disks, ArrayList<Integer> origin, ArrayList<Integer> destination, ArrayList<Integer> aux) throws IOException
 	{
 		
-		if(disks == 1)
+		if(disks == 0)//No hacemos nada
 		{
-			towers[towerA] = towers[towerA]-1; 
-			towers[towerC] = towers[towerC]+1;
-			//printMovements();
+			bw.write( printMovements());
+			return;
+		}
+		else if(disks == 1 )// Pasamos de la A a la C
+		{	
+			bw.write(printMovements());
+			moveDisks(origin, destination);
 			bw.write( printMovements());
 		}
-		else
+		else // Intercambiamos los movimientos
 		{
-			move(disks-1, towerA, towerC, towerB);
+			playHanoi(disks-1, origin, aux, destination);
+			moveDisks(origin,destination );
+			playHanoi(disks-1, aux, destination, origin);
 			
-			move(disks-1, towerA, towerB, towerC);
-			
-			move(disks-1, towerB, towerC, towerA);
 		}
+		
 	}
 	
 	public static String printMovements()
 	{
 		String move = "";
-		for(int i = 0; i < towers.length; i++)
-		{
-			move += towers[i]+" ";
-		}
+		move += towerA.size()+ " " + towerB.size() +" "+ towerC.size();
 		move+="\n";
 		
 		return move;
@@ -88,13 +97,12 @@ public class HanoiSystem {
 
 					line = br.readLine();
 
-					towers[0] = Integer.parseInt(line);
-					towers[1] = 0;
-					towers[2] = 0;
-					bw.write(printMovements());
-					move(towers[0], 0, 1, 2);
+					assignDiskQuantity(Integer.parseInt(line));
+					
+					playHanoi(towerA.size(), towerA, towerC, towerB);
 
 					bw.write("\n");
+					resetTowers();
 				}
 
 			}catch(NumberFormatException ex){
@@ -106,4 +114,30 @@ public class HanoiSystem {
 		bw.close();
 	}
 	
+	//Necesitamos fijar la cantidad de disks para cada juego esa cantidad será el size de towerA
+	
+	public static void assignDiskQuantity(int disks)
+	{
+		for(int i = 0; i < disks; i++)
+		{
+			towerA.add(i);
+		}
+	}
+	
+	//Necesitamos que mueva (sumer y reste) los discos de una torre a otra
+	public static void moveDisks(ArrayList<Integer> towerToDecrease,ArrayList<Integer>  towerToIncrease )
+	{
+		towerToIncrease.add(1);
+		towerToDecrease.remove(towerToDecrease.size()-1);
+		
+	}
+	
+	//Necesitamos "reacomodar los discos para cada caso"
+	
+	public static void resetTowers()
+	{
+		towerA.clear();
+		towerB.clear();
+		towerC.clear();
+	}
 }
